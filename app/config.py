@@ -93,3 +93,6 @@ class AppConfig:
         self.demo_min_renewal_days = 30
         self.demo_max_renewal_days = 365
         self.demo_max_reg_delay_minutes = 120
+        self.demo_user_events_batch_size = int(
+            os.getenv("DEMO_USER_EVENTS_BATCH_SIZE", "1000")
+        )

@@ -1,3 +1,4 @@
+import gc
 import random
 import time
 from collections import defaultdict
@@ -40,6 +41,9 @@ class DemoDataService:
         self.demo_max_renewal_days = app.cfg.demo_max_renewal_days
         self.demo_max_reg_delay_minutes = app.cfg.demo_max_reg_delay_minutes
 
+        # User events batch processing configuration
+        self.demo_user_events_batch_size = app.cfg.demo_user_events_batch_size
+
         # Services
         self.bigquery_service = app.bigquery_service
         self.firestore_service = app.firestore_service
@@ -64,9 +68,8 @@ class DemoDataService:
             renewals = self._create_renewals_collection(company_updates)
             self._update_company_docs_with_purchases_and_provisions(company_updates)
 
-            # Generate and write user events to BigQuery
-            user_events = self._generate_user_events(users)
-            self._write_user_events_to_bigquery(user_events)
+            # Generate and write user events to BigQuery (in batches)
+            total_user_events = self._generate_user_events(users)
 
             return {
                 "success": True,
@@ -78,7 +81,7 @@ class DemoDataService:
                     "trending_entries": len(trending),
                     "renewals": len(renewals),
                     "company_events": len(company_events),
-                    "user_events": len(user_events),
+                    "user_events": total_user_events,
                 },
             }
 
@@ -615,22 +618,58 @@ class DemoDataService:
         return renewals
 
     def _generate_user_events(self, users):
-        logger.info("Generating user events")
+        """Generate and write user events in batches to avoid memory issues."""
+        logger.info("Generating user events in batches")
 
-        # Generate each type of event
+        total_reg_events = 0
+        total_ticket_events = 0
+        total_call_events = 0
+
+        # 1. Generate and write registration events
+        logger.info("Generating registration events")
         reg_events = self._generate_registration_events(users)
+        self._write_user_events_to_bigquery(reg_events)
+        total_reg_events = len(reg_events)
+        logger.info(f"Wrote {total_reg_events} registration events to BigQuery")
+        del reg_events  # Free memory
+        gc.collect()  # Force garbage collection
+
+        # 2. Generate and write ticket events
+        logger.info("Generating ticket events")
         ticket_events = self._generate_ticket_events(users)
-        call_events = self._generate_call_events(users)
+        self._write_user_events_to_bigquery(ticket_events)
+        total_ticket_events = len(ticket_events)
+        logger.info(f"Wrote {total_ticket_events} ticket events to BigQuery")
+        del ticket_events  # Free memory
+        gc.collect()  # Force garbage collection
 
-        # Combine all events (equivalent to beam.Flatten())
-        all_events = reg_events + ticket_events + call_events
+        # 3. Generate and write call events in batches of configurable size
+        logger.info("Generating call events in batches")
+        batch_size = self.demo_user_events_batch_size
+        user_batches = [
+            users[i : i + batch_size] for i in range(0, len(users), batch_size)
+        ]
 
-        logger.info(f"Generated {len(all_events)} total user events")
-        logger.info(f"  Registration events: {len(reg_events)}")
-        logger.info(f"  Ticket events: {len(ticket_events)}")
-        logger.info(f"  Call events: {len(call_events)}")
+        for batch_idx, user_batch in enumerate(user_batches):
+            logger.info(
+                f"Processing call events for user batch {batch_idx + 1}/{len(user_batches)} ({len(user_batch)} users)"
+            )
+            call_events = self._generate_call_events(user_batch)
+            self._write_user_events_to_bigquery(call_events)
+            total_call_events += len(call_events)
+            logger.info(
+                f"Wrote {len(call_events)} call events from batch {batch_idx + 1} to BigQuery"
+            )
+            del call_events  # Free memory
+            gc.collect()  # Force garbage collection after each batch
 
-        return all_events
+        total_events = total_reg_events + total_ticket_events + total_call_events
+        logger.info(f"Generated {total_events} total user events")
+        logger.info(f"  Registration events: {total_reg_events}")
+        logger.info(f"  Ticket events: {total_ticket_events}")
+        logger.info(f"  Call events: {total_call_events}")
+
+        return total_events
 
     def _generate_registration_events(self, users):
         """Generate registration events for users (beam: build_reg_event)."""

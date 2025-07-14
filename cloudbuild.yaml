@@ -41,7 +41,7 @@ steps:
       - '--cpu'
       - '2'
       - '--timeout'
-      - '120'
+      - '300'
       - '--max-instances'
       - '4'
       - '--concurrency'
