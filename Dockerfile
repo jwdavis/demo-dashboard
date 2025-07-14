@@ -34,4 +34,5 @@ USER app
 EXPOSE 8080
 
 # Run the application with gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "4", "--timeout", "120", "run:app"]
+# CMD ["gunicorn", "--bind", $PORT, "--workers", "4", "--timeout", "600", "run:app"]
+CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 run:app
