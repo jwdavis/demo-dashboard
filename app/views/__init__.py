@@ -238,23 +238,3 @@ def customer_dashboard(customer_name):
             ),
             500,
         )
-
-
-@views_bp.route("/api/customer/<customer_name>/card/<card_type>")
-def customer_card_data(customer_name, card_type):
-    """API endpoint for getting specific card data (alternative async endpoint)."""
-    # Check if dashboard service is available
-    if (
-        not hasattr(current_app, "dashboard_service")
-        or current_app.dashboard_service is None
-    ):
-        return jsonify({"error": "Dashboard service is unavailable"}), 500
-
-    try:
-        card_data = current_app.dashboard_service.get_card_data(
-            card_type, customer_name
-        )
-        return jsonify(card_data)
-    except Exception as e:
-        current_app.logger.error(f"Error getting card data for {card_type}: {str(e)}")
-        return jsonify({"error": str(e)}), 500

@@ -8,7 +8,7 @@ logger = get_logger(__name__)
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 
 
-@api_bp.route("/setup_bigquery", methods=["POST"])
+@api_bp.route("/setup/bigquery", methods=["POST"])
 def setup_bigquery():
     """Setup BigQuery dataset and tables."""
     result = current_app.bigquery_service.setup()
@@ -19,7 +19,7 @@ def setup_bigquery():
         return jsonify(result), 500
 
 
-@api_bp.route("/setup_firestore", methods=["POST"])
+@api_bp.route("/setup/firestore", methods=["POST"])
 def setup_firestore():
     """Setup Firestore database."""
     result = current_app.firestore_service.setup()
@@ -30,7 +30,7 @@ def setup_firestore():
         return jsonify(result), 500
 
 
-@api_bp.route("/setup_demo_data", methods=["POST"])
+@api_bp.route("/setup/demo_data", methods=["POST"])
 def setup_demo_data():
     """Create demo data for the application."""
     if (
@@ -54,6 +54,37 @@ def setup_demo_data():
         return jsonify(result)
     else:
         return jsonify(result), 500
+
+
+@api_bp.route("/setup/demo_data_status")
+def demo_data_status():
+    """Get demo data status."""
+    # Check if demo data service is available
+    if (
+        not hasattr(current_app, "demo_data_service")
+        or current_app.demo_data_service is None
+    ):
+        return (
+            jsonify(
+                {"success": False, "message": "Demo data service is not available"}
+            ),
+            500,
+        )
+
+    try:
+        result = current_app.demo_data_service.get_status()
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Error getting demo data status: {str(e)}")
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "message": f"Error getting demo data status: {str(e)}",
+                }
+            ),
+            500,
+        )
 
 
 @api_bp.route("/events/add", methods=["POST"])
@@ -213,3 +244,23 @@ def add_event():
             jsonify({"success": False, "message": f"Error adding event: {str(e)}"}),
             500,
         )
+
+
+@api_bp.route("/customer/<customer_name>/card/<card_type>")
+def customer_card_data(customer_name, card_type):
+    """API endpoint for getting specific card data."""
+    # Check if dashboard service is available
+    if (
+        not hasattr(current_app, "dashboard_service")
+        or current_app.dashboard_service is None
+    ):
+        return jsonify({"error": "Dashboard service is unavailable"}), 500
+
+    try:
+        card_data = current_app.dashboard_service.get_card_data(
+            card_type, customer_name
+        )
+        return jsonify(card_data)
+    except Exception as e:
+        logger.error(f"Error getting card data for {card_type}: {str(e)}")
+        return jsonify({"error": str(e)}), 500

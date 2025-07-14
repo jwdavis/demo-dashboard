@@ -46,7 +46,7 @@ function handleBigQuerySetup() {
     statusDiv.innerHTML = '';
     
     // Make API call
-    fetch('/api/setup_bigquery', {
+    fetch('/api/setup/bigquery', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ function handleFirestoreSetup() {
     statusDiv.innerHTML = '';
     
     // Make API call
-    fetch('/api/setup_firestore', {
+    fetch('/api/setup/firestore', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -137,7 +137,7 @@ function handleCreateDemoData() {
     const userLimit = userLimitInput ? userLimitInput.value : '';
     
     // Make API call
-    fetch('/api/create_demo_data', {
+    fetch('/api/setup/demo_data', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -186,7 +186,7 @@ function handleCheckDemoDataStatus() {
     Utils.setButtonLoading(button, true, 'Checking Status...');
     
     // Make API call
-    fetch('/api/demo_data_status')
+    fetch('/api/setup/demo_data_status')
     .then(response => response.json())
     .then(data => {
         if (data.success) {
