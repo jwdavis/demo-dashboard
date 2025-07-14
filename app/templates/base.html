@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0"/>
+    <meta name="description" content="success-hq demo app">
+    <meta name="author" content="jeff davis">
+    <link rel="icon" href="http://getbootstrap.com/favicon.ico">
+    
+    {% block head %}
+    {% endblock %}
+</head>
+<body>
+    <div id="main">
+        {% block content %}
+        {% endblock %}
+    </div>
+    
+    <!-- Common JavaScript utilities -->
+    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    
+    {% block footer %}{% endblock %}
+    {% block scripts %}{% endblock %}
+</body>
+</html>

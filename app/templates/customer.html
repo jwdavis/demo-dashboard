@@ -1,0 +1,421 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>{{ customer }} Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/jumbotron.css') }}" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
+
+{% block scripts %}
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script>
+        // Initialize dashboard with configuration
+        document.addEventListener('DOMContentLoaded', function() {
+            Dashboard.init({
+                appUrl: "/customer/{{ customer }}",
+                customerName: "{{ customer }}"
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block content %}
+<div class="jumbotron bg-primary text-white py-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="display-5">{{ customer }}</h1>
+                <p class="lead">
+                    Boxes purchased: <span id="header_purchased">{{ purchased }}</span>; 
+                    ACV: ${{ "{:,.2f}".format(acv) }}
+                </p>
+            </div>
+            <div>
+                <!-- <button class="btn btn-warning me-2" onclick="testEvents()" title="Generate test events">Test</button> -->
+                <a href="{{ url_for('views.home') }}" class="btn btn-light btn-lg">← Home</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid mt-4">
+    <div class="row g-3">
+        <!-- Column 1 -->
+        <div class="col-lg-4">
+            <!-- Purchased Devices Card -->
+            <div class="card mb-3" style="height: 420px;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="card-title">Boxes Purchased (Cumulative)</h5>
+                        <button class="refresh-btn-circular" onclick="refreshWithAnimation(this, 'boxes_purchased_cumulative_30d', 'purchasedDevicesHistory', updatePurchasedDevices)" title="Refresh data">
+                            <svg class="refresh-icon" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <h2 id="purchasedDevices" class="text-center">--</h2>
+                    <div id="purchasedDevicesHistory" class="chart-container">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- % Provisioned Card -->
+            <div class="card mb-3" style="height: 420px;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="card-title">Boxes Provisioned % (Cumulative)</h5>
+                        <button class="refresh-btn-circular" onclick="refreshWithAnimation(this, 'boxes_provisioned_pct_cumulative_30d', 'provHistory', updatePctProvisioned)" title="Refresh data">
+                            <svg class="refresh-icon" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <h2 id="prov" class="text-center">--</h2>
+                    <div id="provHistory" class="chart-container">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calls by Type Card -->
+            <div class="card mb-3" style="height: 420px;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="card-title">Calls Breakdown (7 Days)</h5>
+                        <button class="refresh-btn-circular" onclick="refreshWithAnimation(this, 'calls_breakdown_7d', 'cbt', updateCallsCharts)" title="Refresh data">
+                            <svg class="refresh-icon" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="cbt" class="chart-container">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ratings Card -->
+            <div class="card mb-3" style="height: 420px;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="card-title">Ratings Average (7-Day Window)</h5>
+                        <button class="refresh-btn-circular" onclick="refreshWithAnimation(this, 'ratings_average_7d_window_30d', 'ratingsHistory', updateRatings)" title="Refresh data">
+                            <svg class="refresh-icon" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <h2 id="ratings" class="text-center">--</h2>
+                    <div id="ratingsHistory" class="chart-container">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Column 2 -->
+        <div class="col-lg-4">
+            <!-- Registered Devices (Provisioned Devices) Card -->
+            <div class="card mb-3" style="height: 420px;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="card-title">Boxes Provisioned (Cumulative)</h5>
+                        <button class="refresh-btn-circular" onclick="refreshWithAnimation(this, 'boxes_provisioned_cumulative_30d', 'regDevicesHistory', updateProvisionedDevices)" title="Refresh data">
+                            <svg class="refresh-icon" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <h2 id="regDevices" class="text-center">--</h2>
+                    <div id="regDevicesHistory" class="chart-container">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7 Day Active Users Card -->
+            <div class="card mb-3" style="height: 420px;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="card-title">Users Active (7-Day Window)</h5>
+                        <button class="refresh-btn-circular" onclick="refreshWithAnimation(this, 'users_active_7d_window_30d', 'sdauHistory', updateActiveUsers)" title="Refresh data">
+                            <svg class="refresh-icon" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <h2 id="sdau" class="text-center">--</h2>
+                    <div id="sdauHistory" class="chart-container">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calls by # Users Card -->
+            <div class="card mb-3" style="height: 420px;">
+                <div class="card-body">
+                    <h5 class="card-title">Calls by # Users (7 Days)</h5>
+                    <div id="cbu" class="chart-container">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dial-in Sessions Card -->
+            <div class="card mb-3" style="height: 420px;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="card-title">Dialin Count (7-Day Window)</h5>
+                        <button class="refresh-btn-circular" onclick="refreshWithAnimation(this, 'dialin_count_7d_window_30d', 'dialinsHistory', updateDialins)" title="Refresh data">
+                            <svg class="refresh-icon" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <h2 id="dialins" class="text-center">--</h2>
+                    <div id="dialinsHistory" class="chart-container">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Column 3 -->
+        <div class="col-lg-4">
+            <!-- Registered Users Card -->
+            <div class="card mb-3" style="height: 420px;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="card-title">Users Registered (Cumulative)</h5>
+                        <button class="refresh-btn-circular" onclick="refreshWithAnimation(this, 'users_registered_cumulative_30d', 'regUsersHistory', updateRegUsers)" title="Refresh data">
+                            <svg class="refresh-icon" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <h2 id="regUsers" class="text-center">--</h2>
+                    <div id="regUsersHistory" class="chart-container">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calls/Week Card -->
+            <div class="card mb-3" style="height: 420px;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="card-title">Calls Count (7-Day Window)</h5>
+                        <button class="refresh-btn-circular" onclick="refreshWithAnimation(this, 'calls_count_7d_window_30d', 'cpwHistory', updateCallsWeek)" title="Refresh data">
+                            <svg class="refresh-icon" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <h2 id="cpw" class="text-center">--</h2>
+                    <div id="cpwHistory" class="chart-container">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calls by OS Card -->
+            <div class="card mb-3" style="height: 420px;">
+                <div class="card-body">
+                    <h5 class="card-title">Calls by OS (7 Days)</h5>
+                    <div id="cbo" class="chart-container">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Support Tickets Card -->
+            <div class="card mb-3" style="height: 420px;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="card-title">Support Tickets (7-Day Window)</h5>
+                        <button class="refresh-btn-circular" onclick="refreshWithAnimation(this, 'support_tickets_7d_window_30d', 'supportHistory', updateSupport)" title="Refresh data">
+                            <svg class="refresh-icon" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <h2 id="support" class="text-center">--</h2>
+                    <div id="supportHistory" class="chart-container">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Comments Section (Full Width) -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card" style="height: 420px;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title">Comments (Recent 7 Days)</h5>
+                        <button class="refresh-btn-circular" onclick="refreshWithAnimation(this, 'comments_recent_7d', 'comments', updateComments)" title="Refresh data">
+                            <svg class="refresh-icon" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="comments" class="text-left" style="color:#00add7; height: 320px; overflow-y: auto;">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .chart-container {
+        height: 280px;
+        overflow: hidden;
+    }
+    .card {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .card-title {
+        margin-bottom: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    
+    /* Comment bubble styles */
+    .comment-item {
+        display: flex;
+        margin-bottom: 15px;
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        border-left: 4px solid #6c757d;
+        transition: all 0.2s ease;
+    }
+    
+    .comment-item.recent {
+        border-left-color: #007bff;
+        border-left-width: 5px;
+    }
+    
+    .comment-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #007bff;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 16px;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+    
+    .comment-content {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .comment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+    
+    .comment-user {
+        font-weight: 600;
+        color: #007bff;
+        margin-right: 8px;
+    }
+    
+    .comment-time {
+        font-size: 0.85em;
+        color: #6c757d;
+        margin-left: auto;
+    }
+    
+    .comment-text {
+        color: #495057;
+        line-height: 1.4;
+        word-wrap: break-word;
+    }
+    
+    .comment-item:hover {
+        background: #e8f4f8;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0,123,255,0.15);
+    }
+</style>
+
+{% endblock %}

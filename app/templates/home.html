@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Success HQ - Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/jumbotron.css') }}" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="jumbotron bg-primary text-white py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="display-4">Success @ betterdev.io</h1>
+                <p class="lead">"Customer success is all about smart usage that drives key outcomes" - Jeff Davis (<a href="https://twitter.com/jwd_success" class="text-white">@jwd_success</a>)</p>
+            </div>
+            <div>
+                <a href="{{ url_for('views.setup') }}" class="btn btn-light btn-lg">Setup</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if warnings %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="alert-container">
+                {% for warning in warnings %}
+                    <div class="alert alert-{{ warning.type }} alert-dismissible fade show" role="alert">
+                        <strong>{{ warning.service }} Service Warning:</strong> {{ warning.message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <h2>Projects</h2>
+            <div class="home-card-container">
+                {% if projects %}
+                    {% for project in projects %}
+                        <div class="home-card">
+                            <div class="home-avatar">
+                                <div class="avatar-circle">P</div>
+                            </div>
+                            <div class="home-content">
+                                <div class="home-header">
+                                    <span class="home-title">
+                                        <a href="/customer/{{ project.company }}">{{ project.company }}</a>
+                                    </span>
+                                    <span class="home-date">{{ project.formatted_date }}</span>
+                                </div>
+                                <div class="home-text">
+                                    <a href="/projects/{{ project.id }}">{{ project.name }}</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-muted text-center py-4">No upcoming projects found.</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <h2>Renewals</h2>
+            <div class="home-card-container">
+                {% if renewals %}
+                    {% for renewal in renewals %}
+                        <div class="home-card">
+                            <div class="home-avatar">
+                                <div class="avatar-circle">R</div>
+                            </div>
+                            <div class="home-content">
+                                <div class="home-header">
+                                    <span class="home-title">
+                                        <a href="/customer/{{ renewal.company }}">{{ renewal.company }}</a>
+                                    </span>
+                                    <span class="home-date">{{ renewal.formatted_date }}</span>
+                                </div>
+                                <div class="home-text">
+                                    <a href="/renewals/{{ renewal.id }}">{{ renewal.formatted_amount }}</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-muted text-center py-4">No upcoming renewals found.</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <h2>Trending</h2>
+            <div class="home-card-container">
+                {% if trends %}
+                    {% for trend in trends %}
+                        <div class="home-card">
+                            <div class="home-avatar">
+                                <div class="avatar-circle">T</div>
+                            </div>
+                            <div class="home-content">
+                                <div class="home-header">
+                                    <span class="home-title">
+                                        <a href="/customer/{{ trend.company }}">{{ trend.company }}</a>
+                                    </span>
+                                    <span class="home-date">{{ trend.formatted_date }}</span>
+                                </div>
+                                <div class="home-text">
+                                    {{ trend.metric }}: <a href="/customer/{{ trend.id }}">{{ trend.change }}</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-muted text-center py-4">No trending data found.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
