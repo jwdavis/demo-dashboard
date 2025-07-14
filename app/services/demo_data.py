@@ -615,16 +615,6 @@ class DemoDataService:
         return renewals
 
     def _generate_user_events(self, users):
-        """
-        Generate user events based on the beam logic.
-        Creates three types of events: registration, tickets, and calls.
-
-        Args:
-            users: List of user documents with email, company, and reg_date
-
-        Returns:
-            List of all user event dictionaries combined
-        """
         logger.info("Generating user events")
 
         # Generate each type of event
