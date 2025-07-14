@@ -1,16 +1,14 @@
 # Demo Dashboard - Success HQ
 
-A comprehensive customer success analytics dashboard for tracking customer metrics, device provisioning, and usage analytics. This application provides real-time insights into customer behavior, device adoption, and business KPIs through interactive visualizations and automated data processing.
+This is a demonstration version of a dashbarod I built over time for the Customer Success team at Highfive. Every card provides data useful in answering questions we used to frame the success and next steps with a customer.
 
 ## 🎯 What It Does
 
-**Success HQ** is a customer success analytics platform that helps businesses track and analyze:
+**Success HQ** helps CSMs understand:
 
 - **Device Management**: Monitor device purchases, provisioning rates, and activation status
 - **Customer Analytics**: Track user engagement, activity patterns, and retention metrics  
-- **Business Intelligence**: Analyze call patterns, ratings, support tickets, and revenue metrics
 - **Project Management**: Monitor customer projects, renewals, and trending metrics
-- **Real-time Insights**: Live dashboards with interactive charts and KPI tracking
 
 The application combines data from multiple sources to provide a unified view of customer health and business performance, enabling proactive customer success management.
 
@@ -161,7 +159,6 @@ The application will be available at `http://localhost:8080`
 
 1. **Navigate to Setup Page**
    - Visit the home page and click "Setup"
-   - This configures your Google Cloud services
 
 2. **Configure BigQuery**
    - Click "Set Up BigQuery" to create the events dataset and tables
@@ -175,11 +172,12 @@ The application will be available at `http://localhost:8080`
    - Use the demo data generator to create sample customers and events
    - Adjust the user limit based on your needs (default: 100 users)
    - This creates realistic test data for demonstration
+   - Creating a full data set will result in about 15M events records
+   - There will be one year of data, ending on the day the demo data was generated
 
 ### Dashboard Features
 
 **Customer Overview**
-- View all customers with key metrics
 - See upcoming projects and renewals
 - Monitor trending metrics across the platform
 
@@ -189,110 +187,18 @@ The application will be available at `http://localhost:8080`
 - **Quality Metrics**: Analyze ratings, support tickets, and user feedback
 - **Historical Trends**: View 30-day trends for all key metrics
 
-**Interactive Features**
-- Real-time chart updates with refresh buttons
-- Responsive design for desktop and mobile
-- Export capabilities for reporting
-- Drill-down analytics for detailed insights
-
 ### Sample Demo Flow
 
-1. **Setup Services** (one-time)
-   - Configure BigQuery and Firestore
-   - Generate demo data with sample customers
+1. **Home page**
+   - Discuss that projects are engagement with customer to drive adoption/outcomes
+   - Discuss how CSMs might respond to renewals
+   - Discuss types of trends, and why seeing them here would be useful (signals)
 
-2. **Customer Overview**
-   - Review the home page with customer list
-   - Identify customers with upcoming renewals
-   - Check trending metrics
-
-3. **Deep Dive Analysis**
-   - Select a customer to view their detailed dashboard
-   - Analyze device adoption and provisioning rates
-   - Review user engagement and call patterns
-   - Examine support tickets and user feedback
-
-4. **Business Insights**
-   - Identify customers at risk based on low usage
-   - Track revenue impact through device purchases
-   - Monitor customer health scores
-   - Plan expansion opportunities
-
-## 🔧 Configuration
-
-### Environment Variables
-```bash
-# Google Cloud Configuration
-GOOGLE_CLOUD_PROJECT=your-project-id
-GOOGLE_CLOUD_LOCATION=us-central1
-
-# BigQuery Settings
-BIGQUERY_DATASET=events
-BIGQUERY_LOCATION=US
-BIGQUERY_DESCRIPTION="Customer events data warehouse"
-
-# Firestore Settings  
-FIRESTORE_DATABASE=(default)
-FIRESTORE_LOCATION=us-central1
-
-# Application Settings
-LOG_LEVEL=INFO
-ENV=development
-PORT=8080
-```
-
-### Service Account Setup
-Ensure your Google Cloud service account has the following permissions:
-- BigQuery Data Editor
-- BigQuery Job User
-- Firestore Service Agent
-- Cloud Datastore User
-
-## 📈 Metrics and KPIs
-
-The dashboard tracks these key customer success metrics:
-
-**Device Metrics**
-- Boxes Purchased (cumulative)
-- Boxes Provisioned (count and percentage)
-- Device activation rates
-
-**User Engagement**
-- 7-Day Active Users (trending)
-- Registered Users (cumulative)
-- User adoption rates
-
-**Usage Analytics**
-- Calls per week
-- Call duration and patterns
-- Dialin sessions
-- Platform usage (OS breakdown)
-
-**Quality Indicators**
-- Average ratings
-- Support ticket volume
-- User feedback and comments
-- Quality trends
-
-**Business Intelligence**
-- Annual Contract Value (ACV)
-- Customer health scores
-- Renewal forecasting
-- Revenue analytics
+2. **Deep Dive Analysis**
+   - Click a customer link to view its detailed dashboard
+   - Walk through some/all of the cards and explain what data is being presented, what it might tell the CSM, and how they might respond
 
 ## 🚀 Deployment
-
-> **📖 For detailed deployment instructions and configuration options, see [DEPLOYMENT.md](DEPLOYMENT.md)**
-
-### Local Development
-```bash
-python run.py
-```
-
-### Production with Gunicorn
-```bash
-gunicorn -w 4 -b 0.0.0.0:8080 run:app
-```
 
 ### Google Cloud Run (Recommended)
 
@@ -373,17 +279,5 @@ The Cloud Run service is configured with:
 ## 📝 License
 
 This project is intended for demonstration purposes. Please ensure compliance with your organization's data handling and privacy policies when using with real customer data.
-
-## 🤝 Contributing
-
-This is a demo application. For production use, consider implementing:
-- Enhanced authentication and authorization
-- Data encryption and security measures
-- Comprehensive error handling
-- Performance optimization
-- Automated testing suite
-- CI/CD pipeline integration
-
----
 
 **Success HQ** - Empowering customer success through data-driven insights and real-time analytics.
